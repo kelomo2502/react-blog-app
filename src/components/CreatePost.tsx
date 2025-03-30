@@ -29,7 +29,7 @@ const CreatePost = () => {
         content,
         author: user?.displayName || "Anonymous",
         userId: user?.uid,
-        photoURL: user?.photoURL || import.meta.env.VITE_IMAGE_PLACEHOLDER,
+        photoURL: user?.photoURL || "https://media.istockphoto.com/id/666545204/vector/default-placeholder-profile-icon.jpg?s=612x612&w=0&k=20&c=UGYk-MX0pFWUZOr5hloXDREB6vfCqsyS7SgbQ1-heY8=",
         timestamp: serverTimestamp(),
       });
       setContent("");
