@@ -1,5 +1,7 @@
 # VITE-BLOG-APP
 
+## Setting up the docker image
+
 ## setup docker environment in minikube
 
 `eval $(minikube docker-env)`
