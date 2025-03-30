@@ -4,23 +4,30 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
-// Your Firebase configuration (Use exactly as provided by Firebase)
+// Ensure window.__ENV__ is available
+const runtimeEnv = window.__ENV__ || {};
+
+// Use runtime configuration if available, otherwise fallback to Vite env variables
 const firebaseConfig = {
-  apiKey: "AIzaSyDlfKzASm4tB3S35LdbSwXIp6noJWSP5nk",
-  authDomain: "reactblogapp-29546.firebaseapp.com",
-  projectId: "reactblogapp-29546",
-  storageBucket: "reactblogapp-29546.appspot.com",
-  messagingSenderId: "663881917673",
-  appId: "1:663881917673:web:8b7b2b72355bfb067d3c78",
+  apiKey: runtimeEnv.VITE_API_KEY || import.meta.env.VITE_API_KEY,
+  authDomain: runtimeEnv.VITE_AUTH_DOMAIN || import.meta.env.VITE_AUTH_DOMAIN,
+  projectId: runtimeEnv.VITE_PROJECT_ID || import.meta.env.VITE_PROJECT_ID,
+  storageBucket: runtimeEnv.VITE_STORAGE_BUCKET || import.meta.env.VITE_STORAGE_BUCKET,
+  messagingSenderId: runtimeEnv.VITE_MESSAGING_SENDER_ID || import.meta.env.VITE_MESSAGING_SENDER_ID,
+  appId: runtimeEnv.VITE_APP_ID || import.meta.env.VITE_APP_ID,
 };
+
+// Ensure that env-config.js is loaded before initializing Firebase
+if (!firebaseConfig.apiKey) {
+  console.warn("Firebase API Key is missing! Ensure env-config.js is loading correctly.");
+}
 
 // Initialize Firebase App
 const app = initializeApp(firebaseConfig);
 
-// Firebase Services (✅ Add these for better usage)
-export const auth = getAuth(app); // Firebase Authentication
-export const db = getFirestore(app); // Firestore Database
-export const storage = getStorage(app); // Firebase Storage
+// Firebase Services
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+export const storage = getStorage(app);
 
-// Export app instance (optional)
 export default app;

@@ -1,13 +1,20 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { auth } from "../firebase/firebaseConfig";
-import { User, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "firebase/auth";
-
+import { 
+  User, 
+  onAuthStateChanged, 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword, 
+  signOut,
+  updateProfile // ✅ Import updateProfile
+} from "firebase/auth";
+import toast from "react-hot-toast"
 // Define types for TypeScript
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  signup: (email: string, password: string) => Promise<void>;
+  signup: (email: string, password: string, name: string) => Promise<User>; // ✅ Return User
   logout: () => Promise<void>;
 }
 
@@ -34,13 +41,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   // Function to sign up
-  const signup = async (email: string, password: string) => {
-    await createUserWithEmailAndPassword(auth, email, password);
+  const signup = async (email: string, password: string, name: string): Promise<User> => {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+
+    // ✅ Set display name
+    await updateProfile(user, { displayName: name });
+
+    // ✅ Manually update user state after setting display name
+    setUser({ ...user, displayName: name });
+
+    return user;
   };
 
-  // Function to log out
+// ✅ Global Logout with Toast
   const logout = async () => {
-    await signOut(auth);
+    try {
+      await signOut(auth);
+      toast.success("Logout successful! 🎉"); // ✅ Toast persists globally
+    } catch (error: any) {
+      console.error("Logout Error:", error);
+      toast.error(error.message || "Logout failed! ❌");
+    }
   };
 
   return (

@@ -1,54 +1,123 @@
-# React + TypeScript + Vite
+# VITE-BLOG-APP
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## setup docker environment in minikube
 
-Currently, two official plugins are available:
+`eval $(minikube docker-env)`
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Create Kubernetes Secrets for Sensitive Environment Variables
 
-## Expanding the ESLint configuration
+To prevent exposing credentials in the image or config maps, use Kubernetes Secrets.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Create a secret for Firebase environment variables:
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+```bash
+kubectl create secret generic firebase-secrets \
+  --from-literal=VITE_API_KEY="xxxxxxxxxxxxxx" \
+  --from-literal=VITE_AUTH_DOMAIN="xxxxxxxxxxxxxxxxxx" \
+  --from-literal=VITE_PROJECT_ID="xxxxxxxxxxxxxxxxxxx" \
+  --from-literal=VITE_STORAGE_BUCKET="xxxxxxxxxxxxxxxxxx \
+  --from-literal=VITE_MESSAGING_SENDER_ID="xxxxxxxxxxxxxx" \
+  --from-literal=VITE_APP_ID="xxxxxxxxxxxxxxxxxxxxxxxxxx"
+
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## To verify the secret
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+```bash
+kubectl get secrets
+kubectl describe secret firebase-secrets
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
 ```
+
+## Create Kubernetes Deployment & Service
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: react-blog-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: react-blog-app
+  template:
+    metadata:
+      labels:
+        app: react-blog-app
+    spec:
+      containers:
+      - name: react-blog-app
+        image: kelomo2502/vite-blog-app:v1
+        ports:
+          - containerPort: 80
+        env:
+          - name: VITE_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: firebase-secrets
+                key: VITE_API_KEY
+          - name: VITE_AUTH_DOMAIN
+            valueFrom:
+              secretKeyRef:
+                name: firebase-secrets
+                key: VITE_AUTH_DOMAIN
+          - name: VITE_PROJECT_ID
+            valueFrom:
+              secretKeyRef:
+                name: firebase-secrets
+                key: VITE_PROJECT_ID
+          - name: VITE_STORAGE_BUCKET
+            valueFrom:
+              secretKeyRef:
+                name: firebase-secrets
+                key: VITE_STORAGE_BUCKET
+          - name: VITE_MESSAGING_SENDER_ID
+            valueFrom:
+              secretKeyRef:
+                name: firebase-secrets
+                key: VITE_MESSAGING_SENDER_ID
+          - name: VITE_APP_ID
+            valueFrom:
+              secretKeyRef:
+                name: firebase-secrets
+                key: VITE_APP_ID
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: react-blog-service
+spec:
+  selector:
+    app: react-blog-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: NodePort
+
+```
+
+## Apply deployment
+
+`kubectl apply -f deployment.yaml`
+
+## Check deployments and service
+
+`kubectl get deployments`
+`kubectl get services`
+
+## To acess the app via ngrok tunnel
+
+1. Verify Minikube's IP is Correct
+   `minikube ip`
+   It should return 192.168.49.2 (the IP you're forwarding via Ngrok). If it's different, update the Ngrok tunnel.
+
+2. Ensure Minikube Can Access the NodePort
+   `curl http://192.168.49.2:32435`
+   it should return your app’s HTML, Minikube is working fine.
+
+3. Make Sure Ngrok is Properly Forwarding Requests
+    `ngrok http 192.168.49.2:32435` ## service port
+
+4. Access the url generate from the ngrok forwarding

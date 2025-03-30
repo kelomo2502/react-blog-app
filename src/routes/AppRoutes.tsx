@@ -1,20 +1,23 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route} from "react-router-dom";
 import Home from "../pages/Home";
 import Dashboard from "../pages/Dashboard";
 import Profile from "../pages/Profile";
-import NotFound from "../pages/NotFound";
 import Login from "../pages/Login";
 import Signup from "../pages/Signup";
+import NotFound from "../pages/NotFound";
+import ProtectedRoute from "./ProtectedRoute";
+import AuthRedirectRoute from "./AuthRedirectRoute";
+
 
 const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/profile" element={<Profile />} />
+      <Route path="/dashboard" element={<ProtectedRoute element={<Dashboard />} />} />
+      <Route path="/profile" element={<ProtectedRoute element={<Profile />} />} />
+      <Route path="/login" element={<AuthRedirectRoute element={<Login />} />} />
+      <Route path="/signup" element={<AuthRedirectRoute element={<Signup />} />} />
       <Route path="*" element={<NotFound />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/signup" element={<Signup/>} />
     </Routes>
   );
 };
