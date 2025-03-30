@@ -4,24 +4,25 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
+// Use runtime configuration if available, otherwise fallback to Vite env variables
+const runtimeEnv = typeof window !== "undefined" && (window as any).__ENV__;
 
-// Your Firebase configuration (Use exactly as provided by Firebase)
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_API_KEY,
-  authDomain: import.meta.env.VITE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_APP_ID,
+  apiKey: runtimeEnv?.VITE_API_KEY || import.meta.env.VITE_API_KEY,
+  authDomain: runtimeEnv?.VITE_AUTH_DOMAIN || import.meta.env.VITE_AUTH_DOMAIN,
+  projectId: runtimeEnv?.VITE_PROJECT_ID || import.meta.env.VITE_PROJECT_ID,
+  storageBucket: runtimeEnv?.VITE_STORAGE_BUCKET || import.meta.env.VITE_STORAGE_BUCKET,
+  messagingSenderId: runtimeEnv?.VITE_MESSAGING_SENDER_ID || import.meta.env.VITE_MESSAGING_SENDER_ID,
+  appId: runtimeEnv?.VITE_APP_ID || import.meta.env.VITE_APP_ID,
 };
 
 // Initialize Firebase App
 const app = initializeApp(firebaseConfig);
 
-// Firebase Services (✅ Add these for better usage)
-export const auth = getAuth(app); // Firebase Authentication
-export const db = getFirestore(app); // Firestore Database
-export const storage = getStorage(app); // Firebase Storage
+// Firebase Services
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+export const storage = getStorage(app);
 
-// Export app instance (optional)
 export default app;
+
