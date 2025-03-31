@@ -48,16 +48,16 @@ spec:
               secretKeyRef:
                 name: firebase-secrets
                 key: VITE_APP_ID
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: vite-blog-service
-spec:
-  selector:
-    app: vite-blog-app
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 80
-  type: NodePort
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: vite-blog-service
+# spec:
+#   selector:
+#     app: vite-blog-app
+#   ports:
+#     - protocol: TCP
+#       port: 80
+#       targetPort: 80
+#   type: NodePort
