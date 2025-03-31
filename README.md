@@ -299,3 +299,200 @@ Add:
 Now, access your app at:
 
 [http://blog-app.com](http://blog-app.com)
+
+## Deploying via helm
+
+- Run ```bash
+- helm create vite-blog-app
+cd vite-blog-app
+
+```
+
+## Edit the Values.yaml file
+```yaml
+## Updated values.yaml
+
+replicaCount: 4
+
+image:
+  repository: kelomo2502/vite-blog-app
+  pullPolicy: IfNotPresent
+  tag: "v3"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext: {}
+securityContext: {}
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: blog-app.com
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+
+resources: {}
+
+livenessProbe:
+  httpGet:
+    path: /
+    port: http
+readinessProbe:
+  httpGet:
+    path: /
+    port: http
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+
+volumes: []
+volumeMounts: []
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+env:
+  - name: VITE_API_KEY
+    valueFrom:
+      secretKeyRef:
+        name: firebase-secrets
+        key: VITE_API_KEY
+  - name: VITE_AUTH_DOMAIN
+    valueFrom:
+      secretKeyRef:
+        name: firebase-secrets
+        key: VITE_AUTH_DOMAIN
+  - name: VITE_PROJECT_ID
+    valueFrom:
+      secretKeyRef:
+        name: firebase-secrets
+        key: VITE_PROJECT_ID
+  - name: VITE_STORAGE_BUCKET
+    valueFrom:
+      secretKeyRef:
+        name: firebase-secrets
+        key: VITE_STORAGE_BUCKET
+  - name: VITE_MESSAGING_SENDER_ID
+    valueFrom:
+      secretKeyRef:
+        name: firebase-secrets
+        key: VITE_MESSAGING_SENDER_ID
+  - name: VITE_APP_ID
+    valueFrom:
+      secretKeyRef:
+        name: firebase-secrets
+        key: VITE_APP_ID
+
+```
+
+## Modify the deployments.yaml
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "vite-blog-app.fullname" . }}
+  labels:
+    {{- include "vite-blog-app.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "vite-blog-app.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "vite-blog-app.labels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "vite-blog-app.serviceAccountName" . }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          env:
+            - name: REACT_APP_API_BASE_URL
+              value: "{{ .Values.env.apiBaseUrl }}"
+          {{- with .Values.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+```
+
+##  Lint the Helm Chart
+`helm lint <chart-directory>`
