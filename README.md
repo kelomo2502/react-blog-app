@@ -409,6 +409,7 @@ env:
 ```
 
 ## Modify the deployments.yaml
+
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
@@ -494,5 +495,33 @@ spec:
 
 ```
 
-##  Lint the Helm Chart
+## Lint the Helm Chart
+
 `helm lint <chart-directory>`
+
+## Deploy the chart by running
+
+`helm install vite-blog-app ./vite-blog-app`
+👉 Purpose: This command installs a Helm chart named vite-blog-app from the ./vite-blog-app directory for the first time.
+👉 Function:
+
+Deploys the application using the values from values.yaml and the templates in the vite-blog-app chart.
+
+If the release vite-blog-app already exists, it fails unless you add the --replace flag.
+
+Equivalent to kubectl apply -f for Kubernetes manifests.
+
+## To upgrade the chart, run
+
+`helm upgrade --install vite-blog-app ./vite-blog-app`
+
+👉 Purpose: This command is more flexible and is used to either install or upgrade the Helm release.
+👉 Function:
+
+If vite-blog-app is not already installed, it installs it just like helm install.
+
+If vite-blog-app already exists, it updates the deployment with any changes in the Helm chart.
+
+This is useful when making changes to values.yaml or template files, ensuring the app is always running the latest configuration.
+
+✅ Best Practice: Use helm upgrade --install instead of helm install, since it works for both new and existing deployments! 🚀
