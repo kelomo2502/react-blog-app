@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: vite-blog-app
-        image: kelomo2502/vite-blog-app:v1
+        image: kelomo2502/vite-blog-app:v3
         ports:
           - containerPort: 80
         env:

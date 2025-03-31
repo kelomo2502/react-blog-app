@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
 const Signup = () => {
@@ -81,9 +81,9 @@ const Signup = () => {
         {/* ✅ Login Link */}
         <p className="text-gray-500 text-center mt-4 text-sm sm:text-base">
           Already have an account?{" "}
-          <a href="/login" className="text-green-500 font-semibold hover:underline">
+          <Link to={"/login"} className="text-green-500 font-semibold hover:underline">
             Log in
-          </a>
+          </Link>
         </p>
       </form>
     </div>
